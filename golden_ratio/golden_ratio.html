@@ -1,0 +1,42 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+  <!-- <script src="https://cdnjs.com/libraries/mathjs"></script> -->
+  
+  <script language="javascript" type="text/javascript">
+
+  function setup(){
+    createCanvas(500, 500);
+    background(200,0,0,0);
+    PHI = (sqrt(5)+1)/2;
+  }
+
+  function draw(){
+    background(255,255,255,5);
+    translate(100,150);
+    goldenRatio(200);
+  }
+
+  function goldenRatio(h){
+    if (h > 3){
+      strokeWeight(0.5);
+      stroke(random(100,200),0,100,30);
+      noFill();
+      fill(random(175,200),0,random(175,200),2);
+      rect(0,0,h,h);
+      arc(h, h, 2*h-1, 2*h-1, PI, PI + HALF_PI);
+      translate(h*PHI, 0);
+      rotate(HALF_PI);
+      goldenRatio(h/PHI);
+    }
+  }
+
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>
+

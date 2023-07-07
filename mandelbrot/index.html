@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0>
+    <style> body {padding: 0; margin: 0;} </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+    <script language="javascript" type="text/javascript">
+
+    var dimSize = 300;
+    function setup() {
+        createCanvas(dimSize,dimSize);
+        background('white');
+        noLoop();
+    }
+
+    function draw() {
+      background(0, 0, 0, 5);
+        for (var x=0; x<dimSize; x++){
+            for (var y=0; y<dimSize; y++){
+                var a = map(x, 0, dimSize, -0.7473453988298784, -0.7473090467885410);
+                var b = map(y, 0, dimSize, 0.087871833086977, 0.08783548104563970);
+                var z_real = 0;
+                var z_img = 0;
+
+                for (var iteration=1; (iteration<=dimSize) && (dist(0,0,z_real,z_img)<2); iteration++) {
+                    var z_real_temp = (z_real*z_real)-(z_img*z_img)+a;
+                    var z_img_temp = (2*z_real*z_img)+b;
+                    z_real = z_real_temp;
+                    z_img = z_img_temp;
+                }
+
+                if (iteration==dimSize/2){
+                    // stroke(255,0,100);
+                    // point(x,y);
+                } else{
+                    var fraction = Math.tanh(iteration/dimSize);
+                    var color1 = color(0,0,100);
+                    var color2 = color(255,0,200);
+                    stroke(lerpColor(color1,color2,fraction));
+                }
+                point(x,y);
+            }
+        }
+
+    } 
+  
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

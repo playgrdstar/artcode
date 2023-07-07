@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>three.js base</title>
+        <style>
+        </style>
+        <script type="text/javascript" src="../libs/three.js"></script>
+        <script type="text/javascript" src="../libs/OrbitControls.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.8/d3.min.js" type="text/JavaScript"></script>
+<!--         <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script> -->
+        <script type="text/javascript" src="https://cdn.rawgit.com/josephg/noisejs/master/perlin.js"></script>
+    </head>
+    <body>
+
+    <div id='svg'></div>
+        <script>
+            // var p5 = new p5();
+
+            var scene = new THREE.Scene();
+            // var camera = new THREE.PerspectiveCamera( 1000, window.innerWidth / window.innerHeight, 0.1, 1000 );
+            var camera = new THREE.OrthographicCamera(-1000,1000,-3000,1000, 0.001, 2000 );
+            camera.position.z = 1000;
+            
+
+            var renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setPixelRatio( window.devicePixelRatio );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            renderer.setClearColor( 0xF21B6A, 1 );
+            document.body.appendChild( renderer.domElement );
+
+            var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+            orbit.enableZoom = true;
+
+            var ambientLight  = new THREE.AmbientLight( '#FFFFFF' ),
+                hemiLight     = new THREE.HemisphereLight('#FFFFFF', '#FFFFFF', 0 ),
+                light         = new THREE.PointLight( '#FFFFFF', 1, 100 );
+
+            ambientLight.position.set( 0, 100, 0 );
+            hemiLight.position.set( 0, 0, 0 );
+            light.position.set( 0, 0, 0 );
+
+            scene.add( ambientLight ); 
+            scene.add( hemiLight );
+            scene.add( light );
+
+            var group = new THREE.Group();
+
+            var prevFog = true;
+
+            scene.add( group );
+
+            // turtle.render();
+
+            var ruleset = [];
+            ruleset[0] = new Rule('F', "FF+[+F-F-F]-[-F+F+F]");
+            lsys = new LSystem("F", ruleset);
+            turtle = new Turtle(lsys.getSentence(), -100, Math.PI/4);
+
+            var counter = 0;
+            while (counter < 4) {
+                lsys.generate();
+                turtle.setRule(lsys.getSentence());
+                turtle.changeLen(0.66);
+                counter++;
+            }
+
+            turtle.render();
+
+            var render = function () {
+
+                requestAnimationFrame( render );
+                orbit.update();
+                // group.rotation.x += 0.002;
+                // group.rotation.y += 0.03;
+                // group.rotation.z += 0.002;
+
+
+                renderer.render( scene, camera );
+
+            };
+
+            window.addEventListener( 'resize', function () {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                
+
+                renderer.setSize( window.innerWidth, window.innerHeight );
+
+            }, false );
+
+            render();
+
+
+            function LSystem(axiom, r) {
+                this.sentence = axiom;  // The sentence (a String)
+                this.ruleset = r;       // The ruleset (an array of Rule objects)
+                this.generation = 0;    // Keeping track of the generation #
+
+                // Generate the next generation
+                this.generate = function() {
+                    // An empty StringBuffer that we will fill
+                    var nextgen = '';
+                    // For every character in the sentence
+                    for (var i = 0; i < this.sentence.length; i++) {
+                        // What is the character
+                        // We will replace it with itself unless it matches one of our rules
+                        var replace = this.sentence.charAt(i);
+                        // Check every rule
+                        for (var j = 0; j < this.ruleset.length; j++) {
+                            var a = this.ruleset[j].getA();
+                            // if we match the Rule, get the replacement String out of the Rule
+                            if (a === replace) {
+                                replace = this.ruleset[j].getB();
+                                break;
+                            }
+                        }
+                        // Append replacement String
+                        nextgen += replace;
+                    }
+                // Replace sentence
+                this.sentence = nextgen;
+                // Increment generation
+                this.generation++;
+                };
+
+            this.getSentence = function() {
+                return this.sentence;
+            };
+
+            this.getGeneration = function() {
+                return this.generation;
+            };
+            }
+
+            function Rule(a_, b_) {
+                this.a = a_;
+                this.b = b_;
+
+                this.getA = function() {
+                return this.a;
+                };
+
+                this.getB = function() {
+                return this.b;
+                };
+            }
+
+            function Turtle(r,l,t){
+                this.rule = r;
+                this.len = l;
+                this.theta = t;
+
+                this.render = function(){
+
+                    // var geometry = geom;
+                    var angle = 0;
+                    // var scale = 6;
+
+                    var x0 = 0;    
+                    var y0 = 0;   
+                    var z0 = 0;
+
+                    var stackA = [];
+                    var stackV = [];
+
+                    var axis_x = new THREE.Vector3( 1, 0, 0 );
+                    var axis_y = new THREE.Vector3( 0, 1, 0 );
+                    var axis_z = new THREE.Vector3( 0, 0, 1 );
+                    var zero = new THREE.Vector3( 0, 0, 0 );
+
+                    var prev_startpoint = new THREE.Vector3();
+
+                    var startpoint = new THREE.Vector3(x0,y0,z0);
+                    var endpoint = new THREE.Vector3();
+                    var vector_delta = new THREE.Vector3(this.len, this.len, 0);
+
+
+                    for (var i=0; i<this.rule.length; i++){
+                        var c = this.rule.charAt(i);
+                        if (c === 'F'){
+                            var material = new THREE.LineBasicMaterial( { color : 0xffffff, opacity: 0.8, transparent: true } );
+                            var line_geometry = new THREE.Geometry();
+                            var a = vector_delta.clone().applyAxisAngle( axis_y, angle );          
+                            endpoint.addVectors(startpoint, a);  
+
+                            line_geometry.vertices.push(startpoint.clone());
+                            line_geometry.vertices.push(endpoint.clone());
+                            var lObj = new THREE.Line(line_geometry, material);
+                            group.add(lObj);
+
+                            prev_startpoint.copy(startpoint);
+                            startpoint.copy(endpoint);
+                            // console.log(startpoint);
+                        } else if (c === 'G'){
+                            var a = vector_delta.clone().applyAxisAngle( axis_y, angle );          
+                            endpoint.addVectors(startpoint, a);  
+                            prev_startpoint.copy(startpoint);
+                            startpoint.copy(endpoint);
+                            // console.log(startpoint);
+                        } else if (c === '+'){
+                            angle -= this.theta;
+                            // console.log(angle);
+                        } else if (c === '-'){
+                            angle += this.theta;
+                            // console.log(angle);
+                        } else if (c === '['){
+                            stackV.push(new THREE.Vector3(startpoint.x, startpoint.y, startpoint.z));
+                            stackA[stackA.length] = angle;       
+                        } else if (c === ']'){
+                            var point = stackV.pop();
+                            startpoint.copy(new THREE.Vector3(point.x, point.y, point.z));
+                            angle = stackA.pop();
+                        }
+                    }
+                };
+
+                this.setLen = function(l) {
+                    this.len = l;
+                };
+
+                this.changeLen = function(percent) {
+                    this.len *= percent;
+                };
+
+                this.setRule = function(s) {
+                    this.rule = s;
+                };
+            }
+
+
+
+
+        </script>
+    </body>
+</html>

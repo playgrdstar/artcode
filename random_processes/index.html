@@ -1,0 +1,155 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+  <script src="https://cdnjs.com/libraries/mathjs"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/random-js/1.0.8/random.min.js"></script>
+  <script src="prob.js"></script>
+  <script language="javascript" type="text/javascript">
+
+  var pens;
+  var numberTimes = 500;
+  var numberPens = 4;
+  var colorPalette;
+  var transparency = 90;
+  var distChoice = 'uniform';
+  var scaleNum = 2;
+  var thickness = 0.5;
+  normalRandom = Prob.normal(0,1.0);// Normal distribution with mean and standard deviation.
+  uniformRandom = Prob.uniform(-1, 1); // Uniform distribution in range [min, max).    
+  expRandom = Prob.exponential(1.0);// Exponential distribution with lambda.
+  lognormRandom = Prob.lognormal(0,1.0);// Log-normal distribution defined as ln(normal(μ, σ)).
+  poissonRandom = Prob.poisson(0.1,0);// Poisson distribution returning integers >= 0.
+  zipRandom = Prob.zipf(0.1, 5);// Zipf's distribution returning integers in range [1, N].
+
+  var randomChoices = ['uniform', 'normal', 'exp', 'logn', 'poisson', 'zip'];
+  function setup(){
+    createCanvas(750, 500);
+    // background(76, 99, 127, 100);
+    background(0, 0, 0, 100);
+    frameRate(20);
+    colorPalette = [color(95,134,173, transparency), color(231,76,60, transparency),
+                      color(255,231,255, transparency), color(61,152,219, transparency),
+                      color(41, 218, 185, transparency)];
+    initPens();
+  }
+
+  function draw(){
+    // background(76, 99, 127, 5);
+    background(0, 0, 0, 5);
+    for (var i = 0; i < numberTimes; i++){
+      pens.forEach(p => {
+        p.move(-5,5, distChoice);
+        p.draw(distChoice);
+      })
+    }
+
+  }
+
+function mouseClicked() {
+
+  distChoice = random(randomChoices);
+  background(0, 0, 0, 100);
+  initPens();
+  textSize(60);
+  textAlign(CENTER);
+  textStyle(NORMAL);
+  fill(255,255,255,100);
+  strokeWeight(1);
+  text(distChoice, width/2, height/2);
+}
+
+  function initPens() {
+    pens = [];
+    for (var i = 0; i < numberPens; i++){
+      pens.push(new Pen());
+    }
+  }
+
+  function Pen(){
+    // this.x = random(width);
+    // this.y = random(height);
+    this.x = width/2;
+    this.y = height/2;
+    this.move = function(minStep, maxStep, randomFn){
+      this.prevX  = this.x;
+      this.prevY = this.y;
+      if (randomFn == 'uniform'){
+        this.x += uniformRandom()*scaleNum;
+        this.y += uniformRandom()*scaleNum;
+      } else if (randomFn = 'normal'){
+        this.x += normalRandom();
+        this.y += normalRandom();
+      } else if (randomFn = 'exp'){
+        this.x += expRandom();
+        this.y += expRandom();
+      } else if (randomFn = 'logn'){
+        this.x += lognormRandom();
+        this.y += lognormRandom();
+      } else if (randomFn = 'poisson'){
+        this.x += poissonRandom();
+        this.y += poissonRandom();
+      } else if (randomFn = 'zip'){
+        this.x += zipRandom();
+        this.y += zipRandom();
+      }
+
+    }
+
+    this.draw = function(randomFn){
+
+      if (randomFn == 'uniform'){
+        strokeWeight(thickness);
+        stroke(random(colorPalette));
+        line(this.prevX, this.prevY, this.x, this.y);
+        // fill(random(colorPalette));
+        noFill();
+        ellipse(this.x, this.y, uniformRandom()*scaleNum)
+      } else if (randomFn = 'normal'){
+        strokeWeight(thickness);
+        stroke(random(colorPalette));
+        line(this.prevX, this.prevY, this.x, this.y);
+        // fill(random(colorPalette));
+        noFill();
+        ellipse(this.x, this.y, normalRandom()*scaleNum)
+      } else if (randomFn = 'exp'){
+        strokeWeight(thickness);
+        stroke(random(colorPalette));
+        line(this.prevX, this.prevY, this.x, this.y);
+        // fill(random(colorPalette));
+        noFill();
+        ellipse(this.x, this.y, expRandom()*scaleNum)
+      } else if (randomFn = 'logn'){
+        strokeWeight(thickness);
+        stroke(random(colorPalette));
+        line(this.prevX, this.prevY, this.x, this.y);
+        // fill(random(colorPalette));
+        noFill();
+        ellipse(this.x, this.y, lognormRandom()*scaleNum)
+      } else if (randomFn = 'poisson'){
+        strokeWeight(thickness);
+        stroke(random(colorPalette));
+        line(this.prevX, this.prevY, this.x, this.y);
+        // fill(random(colorPalette));
+        noFill();
+        ellipse(this.x, this.y, poissonRandom()*scaleNum)
+      } else if (randomFn = 'zip'){
+        strokeWeight(thickness);
+        stroke(random(colorPalette));
+        line(this.prevX, this.prevY, this.x, this.y);
+        // fill(random(colorPalette));
+        noFill();
+        ellipse(this.x, this.y, zipRandom()*scaleNum)
+      }
+
+    }
+  }
+
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>
+

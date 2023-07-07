@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>three.js base</title>
+        <style>
+                body {
+                    background: rgb(0, 0, 0);
+                    width: 600px;
+                    height: 100%;
+                }
+            </style>
+    </head>
+    <body>
+        <script type="text/javascript" src="../libs/three.js"></script>
+        <script type="text/javascript" src="../libs/stats.js"></script>
+        <script type="text/javascript" src="../libs/dat.gui.js"></script>
+        <script type="text/javascript" src="../libs/TrackballControls.js"></script>
+        <script type="text/javascript" src="../libs/OrbitControls.js"></script>
+        <script type="text/javascript" src="../libs/ParametricGeometries.js"></script>
+        <script>
+
+    window.addEventListener( 'click', init);
+
+    function init(){
+            window.innerWidth = 600;
+            window.innerHeight = 600;
+            // var gui = new dat.GUI();
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 50 );
+            camera.position.z = 30;
+
+            var renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setPixelRatio( window.devicePixelRatio );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            renderer.setClearColor( 0x000000, 1 );
+            document.body.appendChild( renderer.domElement );
+
+            var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+            orbit.enableZoom = false;
+
+            var lights = [];
+            lights[ 0 ] = new THREE.PointLight( 0x660000, 1, 0 );
+            lights[ 1 ] = new THREE.PointLight( 0x660000, 1, 0 );
+            lights[ 2 ] = new THREE.PointLight( 0x660000, 1, 0 );
+
+            lights[ 0 ].position.set( 0, 200, 0 );
+            lights[ 1 ].position.set( 100, 200, 100 );
+            lights[ 2 ].position.set( - 100, - 200, - 100 );
+
+            scene.add( lights[ 0 ] );
+            scene.add( lights[ 1 ] );
+            scene.add( lights[ 2 ] );
+
+
+            var ambientLight  = new THREE.AmbientLight( '#00FFFF' ),
+                hemiLight     = new THREE.HemisphereLight('#00FFFF', '#00FFFF', 0 ),
+                light         = new THREE.PointLight( '#00FFFF', 1, 100 );
+
+            hemiLight.position.set( 0, 0, 0 );
+            light.position.set( 0, 0, 10 );
+
+            // scene.add( ambientLight );
+            scene.add( hemiLight );
+            // scene.add( light );
+
+            var group = new THREE.Group();
+
+            // Shape Start
+            var arrayCurve = [];
+            tsucs();
+            var curve = new THREE.CatmullRomCurve3(arrayCurve);
+            var geometry = new THREE.Geometry();
+            // Create vertices based on the curve
+            geometry.vertices = curve.getPoints(30000);
+            // Create a line from the points with a basic line material
+            var lineMaterial = new THREE.LineBasicMaterial( { color: 0xE74C3C, transparent: true, opacity: 0.9 } );
+            var splineMesh = new THREE.Line(geometry, lineMaterial);
+            var tubeGeometry = new THREE.TubeGeometry(curve, 2000, 0.01, 3, false);
+            // Create a mesh based on the tube geometry and its material
+            var material = new THREE.MeshBasicMaterial( { color: 0xE74C3C } );
+            // var meshMaterial = new THREE.MeshLambertMaterial( { color: 0x0B5394, emissive: 0xCFE2F3, flatShading: false, opacity: 0.3, transparent: false, reflectivity: true } );
+            var meshMaterial = new THREE.MeshPhongMaterial( { color: 0xE74C3C, emissive: 0xE74C3C,emissiveIntensity:0.3, flatShading: true, opacity: 0, transparent: false, reflectivity: true } );
+            var tubeMesh = new THREE.Mesh(tubeGeometry, meshMaterial);
+            // group.add(tubeMesh);
+
+            var pcMat = new THREE.PointCloudMaterial();
+            pcMat.color = new THREE.Color(0xF2778D);
+            pcMat.transparent = true;
+            pcMat.size = 0.05;
+            pcMat.blending = THREE.AdditiveBlending;
+            pc = new THREE.PointCloud(geometry, pcMat);
+            pc.sizeAttenuation = true;
+            pc.sortPoints = true;
+
+            group.add(pc);
+
+            // Shape End
+
+            // var curve = new THREE.SplineCurve(arrayCurve);
+            // var points = curve.getPoints( 10000 );
+            // var geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+            // var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+            // var lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+            // // Create the final object to add to the scene
+            // var splineObject = new THREE.Line( geometry, lineMaterial );
+            // group.add(splineObject);
+
+            // group.add( new THREE.LineSegments( geometry, lineMaterial ) );
+            // group.add( new THREE.Mesh( geometry, meshMaterial ) );
+
+            scene.add( group );
+
+            var prevFog = false;
+
+            // var fftSize = 128;
+            // var listener = new THREE.AudioListener();
+            // var audio = new THREE.Audio( listener );
+            // var mediaElement = new Audio( '../music/BoxCatGamesEpicSong.mp3' );
+            
+            // mediaElement.loop = true;
+            // audio.autoplay = true;
+            
+            // audio.setMediaElementSource( mediaElement );
+            // analyser = new THREE.AudioAnalyser( audio, fftSize );
+
+            var fftSize = 128;
+            var listener = new THREE.AudioListener();
+            var audio = new THREE.Audio( listener );
+            var mediaElement = new Audio( '../music/break-my-heart_by_katrina-stone_Artlist.mp3' );
+            mediaElement.loop = true;
+            audio.autoplay = true;
+            
+            mediaElement.play();
+            audio.setMediaElementSource( mediaElement );
+            analyser = new THREE.AudioAnalyser( audio, fftSize );
+
+
+            var render = function () {
+
+                requestAnimationFrame( render );
+                var sum = analyser.data.reduce(function(a,b){return a+b;});
+                var avg = sum/analyser.data.length;
+                // console.log(avg);
+                group.rotation.x += 0.001*avg;
+                group.rotation.y += 0.0002*avg;
+                group.rotation.z += 0.001*avg;
+                analyser.getFrequencyData();
+                // var sum = analyser.data.reduce(function(a,b){return a+b;});
+                // var avg = sum/analyser.data.length;
+                // console.log(avg);
+                renderer.render( scene, camera );
+
+            };
+
+            window.addEventListener( 'resize', function () {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                
+
+                renderer.setSize( window.innerWidth, window.innerHeight );
+
+            }, false );
+
+            render();
+
+
+
+            function aiwaza(){
+                var x = 0.01, y = 0.01, z = 0.01;
+                arrayCurve = [];
+                var a = 0.95;
+                var b = 0.7;
+                var c = 0.6;
+                var d = 3.5;
+                var e = 0.25;
+                var f = 0.1;
+                var t = 0.01;
+                for (var i=0;i<100000;i++){
+                    var x1 = x;
+                    var y1 = y;
+                    var z1 = z;
+                    x = x1 + t*((z1-b) * x1 - d*y1);   
+                    y = y1 + t*(d*x1 + (z1-b)*y1);
+                    z = z1 + t*(c + a*z1 - Math.pow(z1,3)/3 - 
+                        (Math.pow(x1,2)+Math.pow(y1,2))*(1+e*z1) + 
+                        f * z1 * Math.pow(x1,3));
+
+                    arrayCurve.push(new THREE.Vector3(x, y, z).multiplyScalar(6));
+                }
+            }
+
+            function bedhead(){
+                var x = 0.01, y = 0.01, z = 0.01;
+                var a = 0.67;
+                var b = 0.83;
+                var t = 0.01;
+                for (var i=0;i<1000;i++){
+                    var x1 = x;
+                    var y1 = y;
+                    var z1 = z;
+                    x = Math.sin(x1*y1/b)*y1+Math.cos(a*x1-y1); 
+                    y = x1+Math.sin(y1)/b;
+                    z = Math.random()*5;
+                arrayCurve.push(new THREE.Vector3(x, y, z).multiplyScalar(1.5));   
+                }
+
+            }
+
+            function lorenz(){
+                var x = 0.01, y = 0.01, z = 0.01;
+                var a = 0.9;
+                var b = 3.4;
+                var f = 9.9;
+                var g = 1;
+                var t = 0.001;
+                for (var i=0;i<100000;i++){
+
+                var x1 = x;
+                var y1 = y;
+                var z1 = z;
+                x = x - t*a*x +t*y*y -t*z*z + t*a*f; 
+                y = y - t*y + t*x*y - t*b*x*z + t*g;
+                z = z - t*z + t*b*x*y + t*x*z;
+                arrayCurve.push(new THREE.Vector3(x, y, z).multiplyScalar(1));   
+                
+                }
+
+            }
+
+            function rossler(){
+                var x = 0.01, y = 0.01, z = 0.01;
+                var a = 0.2;
+                var b = 0.2;
+                var c = 5.7;
+                var t = 0.01;
+                for (var i=0;i<100000;i++){
+
+                var x1 = x;
+                var y1 = y;
+                var z1 = z;
+                x = x - t*(y1+z1); 
+                y = y + t*(x1+a*y1);
+                z = z + t*(b+z1*(x1-c));
+
+                arrayCurve.push(new THREE.Vector3(x, y, z).multiplyScalar(0.5));   
+                
+                }
+            }
+
+            function tsucs(){
+                var x = 0.01, y = 0.01, z = 0.01;
+                var a = 0.2;
+                var b = -0.01;
+                var c = 0.5381287182260683;
+                var d = -0.6156480980710297;
+                var e = -1;
+                var f = -1;
+                var t = 0.06;
+                for (var i=0;i<50000;i++){
+
+                var x1 = x;
+                var y1 = y;
+                var z1 = z;
+                x = x + t*(x*a + c*y*z);
+                y = y + t*(b*x + d*y - x*z);
+                z = z + t*(e*z + f*x*y);
+
+                arrayCurve.push(new THREE.Vector3(x, y, z).multiplyScalar(3));   
+                
+                }
+            }
+
+    }
+
+        </script>
+    </body>
+</html>
